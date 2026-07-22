@@ -30,7 +30,7 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Publish to NPM (only if version changed)
+      - name: Publish to NPM Registry (unscoped: manup-cli)
         id: npm_publish
         uses: JS-DevTools/npm-publish@v3
         with:
@@ -38,11 +38,12 @@ jobs:
           access: public
           check-version: true
 
-      - name: Publish to GitHub Packages
+      - name: Publish to GitHub Packages (scoped: @amanbig/manup-cli)
         if: steps.npm_publish.outputs.type != 'none'
         continue-on-error: true
         run: |
           npm config set //npm.pkg.github.com/:_authToken "${{ secrets.GITHUB_TOKEN }}"
+          node -e 'const fs=require("fs"); const pkg=JSON.parse(fs.readFileSync("./package.json")); pkg.name="@amanbig/manup-cli"; fs.writeFileSync("./package.json", JSON.stringify(pkg,null,2));'
           npm publish --registry=https://npm.pkg.github.com
 
       - name: Create GitHub Release & Tag
