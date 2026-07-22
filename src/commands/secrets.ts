@@ -8,7 +8,9 @@ const resolveEnvironmentId = (optionsEnv?: string): string => {
   const localCfg = getLocalConfig();
   const envId = optionsEnv || localCfg?.environmentId;
   if (!envId) {
-    logger.error('Environment ID is required. Pass --env <envId> or run `manup init` to link a workspace.');
+    logger.error(
+      'Environment ID is required. Pass --env <envId> or run `manup init` to link a workspace.',
+    );
     process.exit(1);
   }
   return envId;
@@ -120,7 +122,9 @@ secretsCommand
     }
 
     if (value === undefined) {
-      logger.error('Value is required. Usage: `manup secrets set KEY VALUE` or `manup secrets set KEY=VALUE`');
+      logger.error(
+        'Value is required. Usage: `manup secrets set KEY VALUE` or `manup secrets set KEY=VALUE`',
+      );
       process.exit(1);
     }
 
@@ -196,10 +200,14 @@ secretsCommand
         });
         outputContent = JSON.stringify(secretObj, null, 2);
       } else if (options.format === 'export') {
-        outputContent = secrets.map((s: Secret) => `export ${s.key}="${s.value.replace(/"/g, '\\"')}"`).join('\n');
+        outputContent = secrets
+          .map((s: Secret) => `export ${s.key}="${s.value.replace(/"/g, '\\"')}"`)
+          .join('\n');
       } else {
         // standard .env format
-        outputContent = secrets.map((s: Secret) => `${s.key}="${s.value.replace(/"/g, '\\"')}"`).join('\n');
+        outputContent = secrets
+          .map((s: Secret) => `${s.key}="${s.value.replace(/"/g, '\\"')}"`)
+          .join('\n');
       }
 
       if (options.out) {

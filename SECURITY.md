@@ -9,6 +9,7 @@ If you discover a security vulnerability, **please do not create a public issue*
 - **Email**: `amanpreetsinghjhiwant@outlook.com`
 
 Include as much details as possible:
+
 - Steps to reproduce the issue
 - Potential impact
 - Any proposed fix or remediation

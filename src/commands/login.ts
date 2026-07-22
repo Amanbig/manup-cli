@@ -77,16 +77,11 @@ export const loginCommand = new Command('login')
         try {
           const client = new ManUpClient(serverUrl);
           const loginRes = await client.login(email as string, password as string);
-          
+
           // Optionally generate a persistent CLI API key or use session token
           let userApiKey = loginRes.apiKey;
           if (!userApiKey) {
-            // Try fetching user or creating a CLI API key
-            try {
-              const tempClient = new ManUpClient(serverUrl, undefined);
-              // Store user credentials temporarily
-              setGlobalConfig({ serverUrl, user: loginRes.user });
-            } catch {}
+            setGlobalConfig({ serverUrl, user: loginRes.user });
           }
 
           setGlobalConfig({
@@ -112,7 +107,7 @@ export const loginCommand = new Command('login')
     try {
       const client = new ManUpClient(serverUrl, apiKey);
       const user = await client.getCurrentUser();
-      
+
       setGlobalConfig({
         serverUrl,
         apiKey,

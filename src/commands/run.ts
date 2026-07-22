@@ -14,7 +14,9 @@ export const runCommand = new Command('run')
     const envId = options.env || localCfg?.environmentId;
 
     if (!envId) {
-      logger.error('Environment ID is required. Pass --env <envId> or run `manup init` to link a workspace.');
+      logger.error(
+        'Environment ID is required. Pass --env <envId> or run `manup init` to link a workspace.',
+      );
       process.exit(1);
     }
 

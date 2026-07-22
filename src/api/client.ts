@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
+import axios, { type AxiosInstance } from 'axios';
 import { getGlobalConfig, getLocalConfig } from '../config/store.js';
 
 export interface User {
@@ -57,7 +57,8 @@ export class ManUpClient {
     const globalCfg = getGlobalConfig();
     const localCfg = getLocalConfig();
 
-    this.serverUrl = customServerUrl || localCfg?.serverUrl || globalCfg.serverUrl || 'http://localhost:7780';
+    this.serverUrl =
+      customServerUrl || localCfg?.serverUrl || globalCfg.serverUrl || 'http://localhost:7780';
     const apiKey = customApiKey || globalCfg.apiKey;
     const token = globalCfg.token;
 
@@ -98,7 +99,11 @@ export class ManUpClient {
     return res.data;
   }
 
-  public async createApiKey(name: string, scope: 'full' | 'read-only' = 'full', expiresAt?: string): Promise<ApiKeyItem> {
+  public async createApiKey(
+    name: string,
+    scope: 'full' | 'read-only' = 'full',
+    expiresAt?: string,
+  ): Promise<ApiKeyItem> {
     const res = await this.axiosInstance.post('/users/api-keys', { name, scope, expiresAt });
     return res.data;
   }
@@ -136,7 +141,11 @@ export class ManUpClient {
     return res.data;
   }
 
-  public async createEnvironment(projectId: string, name: string, type: string = 'development'): Promise<Environment> {
+  public async createEnvironment(
+    projectId: string,
+    name: string,
+    type: string = 'development',
+  ): Promise<Environment> {
     const res = await this.axiosInstance.post('/environments', { projectId, name, type });
     return res.data;
   }
@@ -148,7 +157,12 @@ export class ManUpClient {
     return res.data;
   }
 
-  public async setSecret(environmentId: string, key: string, value: string, name?: string): Promise<Secret> {
+  public async setSecret(
+    environmentId: string,
+    key: string,
+    value: string,
+    name?: string,
+  ): Promise<Secret> {
     const res = await this.axiosInstance.post('/secrets', { environmentId, key, value, name });
     return res.data;
   }

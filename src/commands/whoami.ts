@@ -25,7 +25,7 @@ export const whoamiCommand = new Command('whoami')
       spinner.stop();
 
       logger.title('Status & Context');
-      
+
       const rows: string[][] = [
         ['Server URL', client.getServerUrl()],
         ['User Email', user.email],
@@ -34,8 +34,14 @@ export const whoamiCommand = new Command('whoami')
       ];
 
       if (localCfg) {
-        rows.push(['Linked Project', `${localCfg.projectName || 'Project'} (${localCfg.projectId})`]);
-        rows.push(['Linked Environment', `${localCfg.environmentName || 'Environment'} (${localCfg.environmentId})`]);
+        rows.push([
+          'Linked Project',
+          `${localCfg.projectName || 'Project'} (${localCfg.projectId})`,
+        ]);
+        rows.push([
+          'Linked Environment',
+          `${localCfg.environmentName || 'Environment'} (${localCfg.environmentId})`,
+        ]);
       } else {
         rows.push(['Linked Directory', chalk.gray('Not linked. Run `manup init` to link.')]);
       }

@@ -4,7 +4,7 @@
 [![npm version](https://img.shields.io/npm/v/manup-cli.svg)](https://www.npmjs.com/package/manup-cli)
 [![Node.js CI](https://github.com/Amanbig/manup-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/Amanbig/manup-cli/actions)
 
-The official Command Line Interface (CLI) for **[ManUp](https://github.com/Amanbig/ManUp)** — an open-source, self-hosted Secrets Vault. 
+The official Command Line Interface (CLI) for **[ManUp](https://github.com/Amanbig/ManUp)** — an open-source, self-hosted Secrets Vault.
 
 `manup-cli` allows developers and CI/CD pipelines to seamlessly authenticate, manage secrets across environments, export `.env` files, and execute commands with vault secrets injected directly into process environments.
 
@@ -70,6 +70,7 @@ This interactively prompts you to select a project and environment, creating a l
 ## 🔐 Managing Secrets
 
 ### List Secrets
+
 ```bash
 # List masked secrets
 manup secrets
@@ -82,11 +83,13 @@ manup secrets --json
 ```
 
 ### Get a Specific Secret
+
 ```bash
 manup secrets get DATABASE_URL
 ```
 
 ### Create or Update a Secret
+
 ```bash
 # Using argument pair
 manup secrets set API_TOKEN super_secret_val
@@ -96,11 +99,13 @@ manup secrets set API_TOKEN=super_secret_val
 ```
 
 ### Delete a Secret
+
 ```bash
 manup secrets delete API_TOKEN
 ```
 
 ### Export Secrets
+
 ```bash
 # Export to .env file
 manup secrets export --out .env
@@ -130,6 +135,7 @@ manup run -- python app.py
 ```
 
 Override environment on the fly:
+
 ```bash
 manup run --env <environmentId> -- npm test
 ```
@@ -170,10 +176,11 @@ npm link
 Releases are published automatically to [npm](https://www.npmjs.com/package/manup-cli) via GitHub Actions whenever changes are pushed to `main` with a bumped `version` in `package.json`.
 
 To publish a new release:
+
 1. Bump version: `npm version patch` (or `minor`/`major`)
 2. Push to main: `git push origin main`
 
-The GitHub Action checks if the version in `package.json` is new and automatically publishes to NPM. *(Requires `NPM_TOKEN` configured in GitHub repository secrets).*
+The GitHub Action checks if the version in `package.json` is new and automatically publishes to NPM. _(Requires `NPM_TOKEN` configured in GitHub repository secrets)._
 
 ---
 

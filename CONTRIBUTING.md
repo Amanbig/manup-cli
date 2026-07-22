@@ -5,12 +5,14 @@ Thank you for considering contributing to `manup-cli`! We welcome bug reports, f
 ## Development Setup
 
 1. **Fork and Clone** the repository:
+
    ```bash
-   git clone https://github.com/your-username/manup-cli.git
+   git clone https://github.com/Amanbig/manup-cli.git
    cd manup-cli
    ```
 
 2. **Install Dependencies**:
+
    ```bash
    npm install
    ```
@@ -37,6 +39,7 @@ We recommend using clear, descriptive commit messages:
 ## Pull Request Checklist
 
 Before submitting your PR:
+
 - [ ] Run `npm run typecheck` and ensure zero errors.
 - [ ] Run `npm run build` and ensure build completes cleanly.
 - [ ] Test your CLI commands locally against a running ManUp server instance.

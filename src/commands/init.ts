@@ -18,7 +18,9 @@ export const initCommand = new Command('init')
       spinner.stop();
 
       if (projects.length === 0) {
-        logger.error('No projects found in organization. Please create one on the dashboard first.');
+        logger.error(
+          'No projects found in organization. Please create one on the dashboard first.',
+        );
         process.exit(1);
       }
 
@@ -70,7 +72,9 @@ export const initCommand = new Command('init')
         environmentName: selectedEnv?.name,
       });
 
-      p.outro(`Successfully linked directory to project "${selectedProject?.name}" [${selectedEnv?.name}]!\nSaved configuration to ${filePath}`);
+      p.outro(
+        `Successfully linked directory to project "${selectedProject?.name}" [${selectedEnv?.name}]!\nSaved configuration to ${filePath}`,
+      );
     } catch (err: any) {
       spinner.fail('Initialization failed');
       logger.error(err.response?.data?.detail || err.message);
