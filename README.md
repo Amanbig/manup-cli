@@ -165,6 +165,18 @@ npm link
 
 ---
 
+## 🚀 Automated Publishing
+
+Releases are published automatically to [npm](https://www.npmjs.com/package/manup-cli) via GitHub Actions whenever changes are pushed to `main` with a bumped `version` in `package.json`.
+
+To publish a new release:
+1. Bump version: `npm version patch` (or `minor`/`major`)
+2. Push to main: `git push origin main`
+
+The GitHub Action checks if the version in `package.json` is new and automatically publishes to NPM. *(Requires `NPM_TOKEN` configured in GitHub repository secrets).*
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) guide before submitting pull requests.
