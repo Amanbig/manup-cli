@@ -40,18 +40,17 @@ jobs:
 
       - name: Publish to GitHub Packages
         if: steps.npm_publish.outputs.type != 'none'
+        continue-on-error: true
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-          npm publish --registry=https://npm.pkg.github.com || true
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npm config set //npm.pkg.github.com/:_authToken "${{ secrets.GITHUB_TOKEN }}"
+          npm publish --registry=https://npm.pkg.github.com
 
       - name: Create GitHub Release & Tag
         if: steps.npm_publish.outputs.type != 'none'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ steps.npm_publish.outputs.version }}"
-          name: "Release v${{ steps.npm_publish.outputs.version }}"
+          tag_name: 'v${{ steps.npm_publish.outputs.version }}'
+          name: 'Release v${{ steps.npm_publish.outputs.version }}'
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
