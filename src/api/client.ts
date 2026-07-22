@@ -23,7 +23,7 @@ export interface Project {
 export interface Environment {
   id: string;
   name: string;
-  type: string; // 'development' | 'staging' | 'production' | custom
+  description?: string;
   project_id: string;
   organization_id?: string;
   createdAt?: string;

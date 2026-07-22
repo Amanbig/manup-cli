@@ -36,8 +36,13 @@ export const envCommand = new Command('env')
       }
 
       logger.title('Environments');
-      const rows = environments.map((e) => [e.id, e.name, e.type, e.createdAt || '-']);
-      printTable(['Environment ID', 'Name', 'Type', 'Created At'], rows);
+      const rows = environments.map((e) => [
+        e.id,
+        e.name,
+        e.description || '-',
+        e.createdAt ? new Date(e.createdAt).toLocaleString() : '-',
+      ]);
+      printTable(['Environment ID', 'Name', 'Description', 'Created At'], rows);
     } catch (err: any) {
       spinner.fail('Failed to fetch environments');
       logger.error(err.response?.data?.detail || err.message);

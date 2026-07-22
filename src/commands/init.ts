@@ -51,7 +51,7 @@ export const initCommand = new Command('init')
       const selectedEnvVal = await p.select({
         message: 'Select an environment:',
         options: environments.map((env) => ({
-          label: `${env.name} (${env.type})`,
+          label: env.description ? `${env.name} (${env.description})` : env.name,
           value: env.id,
         })),
       });
