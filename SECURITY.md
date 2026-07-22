@@ -6,7 +6,7 @@ Security is a top priority for `manup-cli` as it handles credentials and environ
 
 If you discover a security vulnerability, **please do not create a public issue**. Instead, report it privately to the maintainers:
 
-- **Email**: `aman@manup.io` (or contact repository owners privately on GitHub).
+- **Email**: `amanpreetsinghjhiwant@outlook.com`
 
 Include as much details as possible:
 - Steps to reproduce the issue
