@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ManUp CLI Documentation — Official CLI for ManUp Secrets Vault</title>
+  <meta name="description" content="Official documentation for ManUp CLI — Manage, synchronize, and inject environment secrets seamlessly across your development projects and CI/CD pipelines.">
+  <meta name="keywords" content="manup, manup-cli, secrets-vault, infisical-alternative, doppler-alternative, environment-variables, developer-tools">
+  <meta property="og:title" content="ManUp CLI Documentation">
+  <meta property="og:description" content="Manage and inject environment secrets seamlessly with ManUp CLI.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://github.com/Amanbig/manup-cli">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-code: #1f2937;
+      --border-color: #1f293d;
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+      --accent-primary: #6366f1;
+      --accent-secondary: #06b6d4;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
+      --code-green: #10b981;
+      --code-yellow: #f59e0b;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background-color: rgba(11, 15, 25, 0.85);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .brand-icon {
+      font-size: 1.5rem;
+    }
+
+    .brand-title {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-sub);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-main);
+    }
+
+    .btn-github {
+      background-color: #1f293d;
+      color: var(--text-main);
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+
+    .btn-github:hover {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Layout Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 3rem;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      position: sticky;
+      top: 5rem;
+      height: calc(100vh - 6rem);
+      overflow-y: auto;
+
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .menu-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .menu-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-sub);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .menu-items {
+      list-style: none;
+    }
+
+    .menu-items li {
+      margin-bottom: 0.35rem;
+    }
+
+    .menu-items a {
+      color: var(--text-sub);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: block;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .menu-items a:hover, .menu-items a.active {
+      color: var(--text-main);
+      background-color: rgba(99, 102, 241, 0.12);
+    }
+
+    /* Main Content */
+    .content {
+      min-width: 0;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem;
+      margin-bottom: 3rem;
+      background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15), transparent 70%);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 16px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-sub);
+      max-width: 650px;
+      margin: 0 auto 2rem auto;
+    }
+
+    .hero-cta {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .install-bar {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      gap: 1rem;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Code & Section Styles */
+    section {
+      margin-bottom: 3.5rem;
+      scroll-margin-top: 6rem;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.75rem 0;
+      color: #e5e7eb;
+    }
+
+    p {
+      color: var(--text-sub);
+      margin-bottom: 1rem;
+    }
+
+    .code-block {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background-color: rgba(31, 41, 55, 0.5);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      font-family: var(--font-mono);
+    }
+
+    pre {
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      overflow-x: auto;
+      color: #e5e7eb;
+      line-height: 1.5;
+    }
+
+    .cmd-prompt { color: var(--accent-secondary); }
+    .cmd-opt { color: #f472b6; }
+    .cmd-val { color: #a7f3d0; }
+    .cmd-comment { color: #6b7280; font-style: italic; }
+
+    /* Vault Box Feature */
+    .vault-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.1));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 2rem 0;
+    }
+
+    .vault-banner h3 {
+      margin-top: 0;
+      color: #c084fc;
+    }
+
+    .vault-banner a {
+      color: var(--accent-secondary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .vault-banner a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 850px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+      .hero-title {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="navbar">
+    <a href="#" class="brand">
+      <span class="brand-icon">🔒</span>
+      <span class="brand-title">ManUp CLI</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#quickstart">Quickstart</a></li>
+      <li><a href="#auth">Authentication</a></li>
+      <li><a href="#secrets">Secrets</a></li>
+      <li><a href="#run">Inject Secrets</a></li>
+      <li><a href="https://github.com/Amanbig/ManUp" target="_blank">Vault Server ↗</a></li>
+    </ul>
+    <a href="https://github.com/Amanbig/manup-cli" target="_blank" class="btn-github">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </nav>
+
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <input type="text" id="cmdSearch" class="search-box" placeholder="Search commands...">
+
+      <div class="menu-group">
+        <div class="menu-title">Getting Started</div>
+        <ul class="menu-items">
+          <li><a href="#quickstart">Quickstart</a></li>
+          <li><a href="#installation">Installation</a></li>
+        </ul>
+      </div>
+
+      <div class="menu-group">
+        <div class="menu-title">Commands</div>
+        <ul class="menu-items">
+          <li><a href="#auth">manup login</a></li>
+          <li><a href="#whoami">manup whoami</a></li>
+          <li><a href="#init">manup init</a></li>
+          <li><a href="#secrets">manup secrets</a></li>
+          <li><a href="#export">manup secrets export</a></li>
+          <li><a href="#run">manup run</a></li>
+        </ul>
+      </div>
+
+      <div class="menu-group">
+        <div class="menu-title">Ecosystem</div>
+        <ul class="menu-items">
+          <li><a href="#vault-server">ManUp Server</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Documentation Content -->
+    <main class="content">
+      
+      <!-- Hero Header -->
+      <header class="hero">
+        <span class="hero-badge">v0.1.0 • Open Source</span>
+        <h1 class="hero-title">ManUp CLI</h1>
+        <p class="hero-subtitle">
+          Manage, synchronize, and inject environment secrets seamlessly across your projects and automation pipelines.
+        </p>
+
+        <div class="hero-cta">
+          <div class="install-bar">
+            <span>$ npm install -g manup-cli</span>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g manup-cli')">Copy</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Quickstart Section -->
+      <section id="quickstart">
+        <h2>⚡ Quickstart</h2>
+        <p>Get started with ManUp CLI in 3 easy steps:</p>
+
+        <div class="code-block">
+          <div class="code-header">bash</div>
+          <pre><code><span class="cmd-comment"># 1. Install globally</span>
+<span class="cmd-prompt">$</span> npm install -g manup-cli
+
+<span class="cmd-comment"># 2. Authenticate with your ManUp Vault Server</span>
+<span class="cmd-prompt">$</span> manup login --server http://localhost:7780 --api-key mp_your_key
+
+<span class="cmd-comment"># 3. Inject vault secrets directly into your application command</span>
+<span class="cmd-prompt">$</span> manup run -- npm start</code></pre>
+        </div>
+      </section>
+
+      <!-- Installation Section -->
+      <section id="installation">
+        <h2>📦 Installation</h2>
+        <p>You can install <code>manup-cli</code> globally via npm, pnpm, or yarn:</p>
+
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>npm install -g manup-cli</code></pre>
+        </div>
+
+        <p>Or run any command statelessly with <code>npx</code>:</p>
+
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>npx manup-cli whoami</code></pre>
+        </div>
+      </section>
+
+      <!-- Authentication Section -->
+      <section id="auth">
+        <h2>🔑 Authentication (<code>manup login</code>)</h2>
+        <p>Authenticate your local environment with your self-hosted ManUp server.</p>
+
+        <h3>Interactive Login</h3>
+        <p>Prompts for server URL and authenticates via API Key or Email/Password credentials:</p>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup login</code></pre>
+        </div>
+
+        <h3>Non-Interactive Login</h3>
+        <p>Ideal for CI/CD pipelines and deployment scripts:</p>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup login --server http://localhost:7780 --api-key mp_your_api_key</code></pre>
+        </div>
+      </section>
+
+      <!-- Status Section -->
+      <section id="whoami">
+        <h2>👤 Status Check (<code>manup whoami</code>)</h2>
+        <p>Displays active server URL, logged-in user email, organization ID, and linked directory details.</p>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup whoami</code></pre>
+        </div>
+      </section>
+
+      <!-- Init Section -->
+      <section id="init">
+        <h2>🔗 Workspace Linking (<code>manup init</code>)</h2>
+        <p>Links your current directory to a specific project and environment in your ManUp vault by creating a local <code>.manup.json</code> file.</p>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup init</code></pre>
+        </div>
+      </section>
+
+      <!-- Secrets Management Section -->
+      <section id="secrets">
+        <h2>🔐 Secret Operations (<code>manup secrets</code>)</h2>
+        <p>Full CRUD operations for managing decrypted environment variables in your vault.</p>
+
+        <h3>List Secrets</h3>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code><span class="cmd-comment"># List masked secrets</span>
+manup secrets
+
+<span class="cmd-comment"># Reveal plain secret values</span>
+manup secrets ls --reveal</code></pre>
+        </div>
+
+        <h3>Set Secret</h3>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup secrets set DATABASE_URL postgres://user:pass@localhost:5432/db</code></pre>
+        </div>
+
+        <h3>Get Secret</h3>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup secrets get DATABASE_URL</code></pre>
+        </div>
+
+        <h3>Delete Secret</h3>
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code>manup secrets delete DATABASE_URL</code></pre>
+        </div>
+      </section>
+
+      <!-- Export Section -->
+      <section id="export">
+        <h2>📄 Exporting Secrets</h2>
+        <p>Export environment variables to <code>.env</code> files or standard export scripts.</p>
+
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code><span class="cmd-comment"># Write secrets to .env file</span>
+manup secrets export --out .env
+
+<span class="cmd-comment"># Output JSON format</span>
+manup secrets export --format json</code></pre>
+        </div>
+      </section>
+
+      <!-- Process Injection Section -->
+      <section id="run">
+        <h2>🚀 Running Commands (<code>manup run</code>)</h2>
+        <p>Injects decrypted vault secrets directly into the child process environment variables at runtime without saving them to disk.</p>
+
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code><span class="cmd-comment"># Inject secrets into Node.js application</span>
+manup run -- node server.js
+
+<span class="cmd-comment"># Inject secrets into npm dev server</span>
+manup run -- npm run dev</code></pre>
+        </div>
+      </section>
+
+      <!-- Main Vault Server Reference -->
+      <section id="vault-server">
+        <div class="vault-banner">
+          <h3>⚡ Powered by ManUp Vault Server</h3>
+          <p>
+            This CLI connects to your self-hosted <strong>ManUp Secrets Vault Server</strong>. ManUp is a lightweight, open-source secrets management platform built with Node.js, Express, TypeScript, and PGLite PostgreSQL.
+          </p>
+          <p>
+            👉 View the main repository: <a href="https://github.com/Amanbig/ManUp" target="_blank">https://github.com/Amanbig/ManUp</a>
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Released under the MIT License • Built for the <a href="https://github.com/Amanbig/ManUp" style="color: var(--accent-secondary); text-decoration: none;">ManUp Vault Platform</a></p>
+  </footer>
+
+  <script>
+    // Command search filter logic
+    const searchInput = document.getElementById('cmdSearch');
+    const sections = document.querySelectorAll('section');
+
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      sections.forEach(sec => {
+        const text = sec.textContent.toLowerCase();
+        if (text.includes(term)) {
+          sec.style.display = 'block';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
