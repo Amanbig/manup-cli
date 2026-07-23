@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-import { getGlobalConfig, getLocalConfig } from '../config/store.js';
+import { getGlobalConfig, setGlobalConfig, getLocalConfig } from '../config/store.js';
 
 export interface User {
   id: string;
@@ -53,14 +53,14 @@ export class ManUpClient {
   private axiosInstance: AxiosInstance;
   private serverUrl: string;
 
-  constructor(customServerUrl?: string, customApiKey?: string) {
+  constructor(customServerUrl?: string, customApiKey?: string, customToken?: string) {
     const globalCfg = getGlobalConfig();
     const localCfg = getLocalConfig();
 
     this.serverUrl =
       customServerUrl || localCfg?.serverUrl || globalCfg.serverUrl || 'http://localhost:7780';
     const apiKey = customApiKey || globalCfg.apiKey;
-    const token = globalCfg.token;
+    const token = customToken || globalCfg.token;
 
     // Ensure baseUrl includes /api
     const baseUrl = this.serverUrl.replace(/\/$/, '') + '/api';
@@ -81,6 +81,43 @@ export class ManUpClient {
       headers,
       timeout: 15000,
     });
+
+    // Auto Refresh Interceptor for expired JWT access tokens
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          !originalRequest.url?.includes('/users/login') &&
+          !originalRequest.url?.includes('/users/refresh')
+        ) {
+          originalRequest._retry = true;
+          const currentConfig = getGlobalConfig();
+          if (currentConfig.refreshToken) {
+            try {
+              const refreshRes = await axios.post(
+                `${baseUrl}/users/refresh`,
+                { refreshToken: currentConfig.refreshToken },
+                { headers: { 'Content-Type': 'application/json' }, timeout: 10000 },
+              );
+              const newToken = refreshRes.data.token;
+              const newRefreshToken = refreshRes.data.refreshToken || currentConfig.refreshToken;
+
+              if (newToken) {
+                setGlobalConfig({ token: newToken, refreshToken: newRefreshToken });
+                originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+                return this.axiosInstance(originalRequest);
+              }
+            } catch {
+              // Session expired
+            }
+          }
+        }
+        return Promise.reject(error);
+      },
+    );
   }
 
   public getServerUrl(): string {
@@ -89,8 +126,16 @@ export class ManUpClient {
 
   // --- Auth / User Endpoints ---
 
-  public async login(email: string, password: string): Promise<{ user: User; apiKey?: string }> {
-    const res = await this.axiosInstance.post('/users/login', { email, password });
+  public async login(
+    emailOrUsername: string,
+    password: string,
+  ): Promise<{ user: User; token?: string; refreshToken?: string; apiKey?: string }> {
+    const isEmail = emailOrUsername.includes('@');
+    const payload = isEmail
+      ? { email: emailOrUsername, password }
+      : { username: emailOrUsername, password };
+
+    const res = await this.axiosInstance.post('/users/login', payload);
     return res.data;
   }
 

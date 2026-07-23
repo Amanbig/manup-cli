@@ -704,21 +704,28 @@
       <!-- Authentication Section -->
       <section id="auth">
         <h2>🔑 Authentication (<code>manup login</code>)</h2>
-        <p>Authenticate your local environment with your self-hosted ManUp server.</p>
+        <p>Authenticate your local environment with your self-hosted ManUp server instance securely.</p>
 
-        <h3>Interactive Login</h3>
-        <p>Prompts for server URL and authenticates via API Key or Email/Password credentials:</p>
+        <h3>Interactive Dual Login</h3>
+        <p>Choose between direct Email/Username & Password login (which auto-generates a dedicated CLI API Key) or an existing API Key (<code>mp_...</code>):</p>
         <div class="code-block">
           <div class="code-header">terminal</div>
           <pre><code>manup login</code></pre>
         </div>
 
-        <h3>Non-Interactive Login</h3>
-        <p>Ideal for CI/CD pipelines and deployment scripts:</p>
+        <h3>Non-Interactive Login & Automation</h3>
+        <p>Log in directly with flags or authenticate statelessly in CI/CD pipelines:</p>
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code>manup login --server http://localhost:7780 --api-key mp_your_api_key</code></pre>
+          <pre><code><span class="cmd-comment"># Direct login with credentials flags</span>
+manup login --server http://localhost:7780 --user dev@example.com --password mypass
+
+<span class="cmd-comment"># Non-interactive API key login</span>
+manup login --server http://localhost:7780 --api-key mp_your_api_key</code></pre>
         </div>
+
+        <h3>🔒 Machine-Bound AES Encryption</h3>
+        <p>Credentials stored on disk are encrypted using <strong>AES-256-CBC</strong> derived from your local machine identity (<code>scrypt</code> hash) with strict POSIX permissions (<code>0600</code>), keeping tokens safe from local process theft.</p>
       </section>
 
       <!-- Status Section -->

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { getGlobalConfig, getLocalConfig } from '../config/store.js';
+import { getGlobalConfig, getLocalConfig, getAuthSource } from '../config/store.js';
 import { ManUpClient } from '../api/client.js';
 import { logger, createSpinner, printTable } from '../utils/logger.js';
 import chalk from 'chalk';
@@ -10,6 +10,7 @@ export const whoamiCommand = new Command('whoami')
   .action(async () => {
     const globalCfg = getGlobalConfig();
     const localCfg = getLocalConfig();
+    const authSource = getAuthSource();
 
     if (!globalCfg.apiKey && !globalCfg.token) {
       logger.warn('Not logged in. Run `manup login` to authenticate.');
@@ -26,11 +27,31 @@ export const whoamiCommand = new Command('whoami')
 
       logger.title('Status & Context');
 
+      let authTypeLabel = 'API Key';
+      let credentialPreview = 'N/A';
+
+      if (authSource === 'env') {
+        authTypeLabel = 'Environment Override';
+        const rawKey = process.env.MANUP_API_KEY || process.env.MANUP_TOKEN || '';
+        credentialPreview = rawKey ? `${rawKey.substring(0, 7)}...` : 'ENV';
+      } else if (globalCfg.apiKey) {
+        authTypeLabel = 'API Key (mp_...)';
+        credentialPreview = `${globalCfg.apiKey.substring(0, 7)}...${globalCfg.apiKey.slice(-4)}`;
+      } else if (globalCfg.token) {
+        authTypeLabel = 'Session JWT Token';
+        credentialPreview = `${globalCfg.token.substring(0, 10)}...`;
+      }
+
       const rows: string[][] = [
         ['Server URL', client.getServerUrl()],
         ['User Email', user.email],
         ['User Name', user.name || user.username || 'N/A'],
         ['Organization ID', user.organizationId],
+        ['Auth Method', `${authTypeLabel} (${credentialPreview})`],
+        [
+          'Credential Storage',
+          authSource === 'env' ? 'Environment Variable' : 'Encrypted Local Store (AES-256)',
+        ],
       ];
 
       if (localCfg) {

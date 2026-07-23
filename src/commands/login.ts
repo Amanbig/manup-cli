@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import * as p from '@clack/prompts';
+import os from 'node:os';
 import { ManUpClient } from '../api/client.js';
 import { setGlobalConfig, clearGlobalAuth, getGlobalConfig } from '../config/store.js';
 import { logger, createSpinner } from '../utils/logger.js';
@@ -7,13 +8,17 @@ import { logger, createSpinner } from '../utils/logger.js';
 export const loginCommand = new Command('login')
   .description('Authenticate with ManUp vault server')
   .option('-s, --server <url>', 'ManUp server URL (e.g. http://localhost:7780)')
-  .option('-k, --api-key <key>', 'API key (mp_...)')
+  .option('-k, --api-key <key>', 'API Key (mp_...)')
+  .option('-u, --user <emailOrUsername>', 'Email or username for direct login')
+  .option('-p, --password <password>', 'Password for direct login')
   .action(async (options) => {
     p.intro('🔒 ManUp Login');
 
     const globalConfig = getGlobalConfig();
     let serverUrl = options.server;
     let apiKey = options.apiKey;
+    let usernameInput = options.user;
+    let passwordInput = options.password;
 
     if (!serverUrl) {
       const serverInput = await p.text({
@@ -28,12 +33,60 @@ export const loginCommand = new Command('login')
       serverUrl = serverInput;
     }
 
+    // Direct Login via non-interactive username & password flags
+    if (usernameInput && passwordInput && !apiKey) {
+      const spinner = createSpinner('Authenticating with server...');
+      spinner.start();
+      try {
+        const client = new ManUpClient(serverUrl);
+        const loginRes = await client.login(usernameInput, passwordInput);
+
+        let finalApiKey = loginRes.apiKey;
+        let finalToken = loginRes.token;
+
+        if (!finalApiKey && finalToken) {
+          try {
+            const tokenClient = new ManUpClient(serverUrl, undefined, finalToken);
+            const keyRecord = await tokenClient.createApiKey(
+              `manup-cli (${os.hostname()})`,
+              'full',
+            );
+            if (keyRecord?.apiKey) {
+              finalApiKey = keyRecord.apiKey;
+              finalToken = undefined;
+            }
+          } catch {
+            // Fall back to session JWT token if key creation is unauthorized
+          }
+        }
+
+        setGlobalConfig({
+          serverUrl,
+          apiKey: finalApiKey,
+          token: finalToken,
+          refreshToken: finalToken ? loginRes.refreshToken : undefined,
+          user: loginRes.user,
+        });
+
+        spinner.succeed('Logged in successfully!');
+        p.outro(
+          `Authenticated as ${loginRes.user.email} (${loginRes.user.name || loginRes.user.username || 'User'})`,
+        );
+        return;
+      } catch (err: any) {
+        spinner.fail('Authentication failed');
+        logger.error(err.response?.data?.detail || err.message || 'Login failed');
+        process.exit(1);
+      }
+    }
+
+    // Interactive method selection if neither API Key nor Username/Password flags were fully passed
     if (!apiKey) {
       const method = await p.select({
         message: 'How would you like to authenticate?',
         options: [
+          { label: 'Direct Login (Email / Username & Password)', value: 'credentials' },
           { label: 'API Key (mp_...)', value: 'apikey' },
-          { label: 'Email & Password', value: 'credentials' },
         ],
       });
 
@@ -46,7 +99,7 @@ export const loginCommand = new Command('login')
         const keyInput = await p.text({
           message: 'Enter your ManUp API Key:',
           placeholder: 'mp_...',
-          validate: (val) => (!val ? 'API key cannot be empty' : undefined),
+          validate: (val) => (!val ? 'API Key cannot be empty' : undefined),
         });
         if (p.isCancel(keyInput)) {
           p.cancel('Login cancelled.');
@@ -54,11 +107,11 @@ export const loginCommand = new Command('login')
         }
         apiKey = keyInput;
       } else {
-        const email = await p.text({
-          message: 'Email:',
-          validate: (val) => (!val ? 'Email is required' : undefined),
+        const identifier = await p.text({
+          message: 'Email or Username:',
+          validate: (val) => (!val ? 'Email or Username is required' : undefined),
         });
-        if (p.isCancel(email)) {
+        if (p.isCancel(identifier)) {
           p.cancel('Login cancelled.');
           process.exit(0);
         }
@@ -72,26 +125,43 @@ export const loginCommand = new Command('login')
           process.exit(0);
         }
 
-        const spinner = createSpinner('Authenticating with server...');
+        const spinner = createSpinner('Authenticating credentials...');
         spinner.start();
         try {
           const client = new ManUpClient(serverUrl);
-          const loginRes = await client.login(email as string, password as string);
+          const loginRes = await client.login(identifier as string, password as string);
 
-          // Optionally generate a persistent CLI API key or use session token
-          let userApiKey = loginRes.apiKey;
-          if (!userApiKey) {
-            setGlobalConfig({ serverUrl, user: loginRes.user });
+          let finalApiKey = loginRes.apiKey;
+          let finalToken = loginRes.token;
+
+          if (!finalApiKey && finalToken) {
+            try {
+              const tokenClient = new ManUpClient(serverUrl, undefined, finalToken);
+              const keyRecord = await tokenClient.createApiKey(
+                `manup-cli (${os.hostname()})`,
+                'full',
+              );
+              if (keyRecord?.apiKey) {
+                finalApiKey = keyRecord.apiKey;
+                finalToken = undefined;
+              }
+            } catch {
+              // Retain JWT token as fallback
+            }
           }
 
           setGlobalConfig({
             serverUrl,
-            apiKey: userApiKey,
+            apiKey: finalApiKey,
+            token: finalToken,
+            refreshToken: finalToken ? loginRes.refreshToken : undefined,
             user: loginRes.user,
           });
 
           spinner.succeed('Logged in successfully!');
-          p.outro(`Authenticated as ${loginRes.user.email}`);
+          p.outro(
+            `Authenticated as ${loginRes.user.email} (${loginRes.user.name || loginRes.user.username || 'User'})`,
+          );
           return;
         } catch (err: any) {
           spinner.fail('Authentication failed');
@@ -111,6 +181,7 @@ export const loginCommand = new Command('login')
       setGlobalConfig({
         serverUrl,
         apiKey,
+        token: undefined,
         user,
       });
 

@@ -28,19 +28,34 @@ npx manup-cli --help
 
 ---
 
-## 🔑 Authentication
+## 🔑 Authentication & Security
 
 Log in to your self-hosted ManUp server instance (`http://localhost:7780` by default):
 
 ```bash
-# Interactive login (select API key or Email/Password)
+# Interactive login (select Direct Email/Password or API Key)
 manup login
+
+# Direct login via credentials flags
+manup login --server http://localhost:7780 --user dev@example.com --password mysecretpass
 
 # Non-interactive API key login
 manup login --server http://localhost:7780 --api-key mp_your_api_key
 ```
 
-Verify your active session & server connection:
+### 🔒 Security & Credential Storage
+
+- **AES-256 Machine Encryption**: Credentials are stored in `~/.config/manup-cli-nodejs/` encrypted via AES-256-CBC using a key derived from your machine identity (`scrypt` hash of hostname, username, and homedir).
+- **File Permissions**: POSIX file permissions are automatically set to `0600` (`rw-------`, owner read/write only).
+- **Environment Overrides**: For CI/CD and automation scripts, set `MANUP_API_KEY` (or `MANUP_TOKEN`) and `MANUP_SERVER_URL` to override local configuration statelessly:
+
+```bash
+export MANUP_SERVER_URL="http://localhost:7780"
+export MANUP_API_KEY="mp_your_ci_api_key"
+manup secrets
+```
+
+Verify your active session & authentication method:
 
 ```bash
 manup whoami
