@@ -357,24 +357,193 @@
     }
 
     /* Footer */
-    footer {
-      border-top: 1px solid var(--border-color);
-      padding: 2rem;
-      text-align: center;
-      color: var(--text-sub);
-      font-size: 0.85rem;
-      margin-top: 4rem;
+    /* Mobile Hamburger & Drawer Styles */
+    .mobile-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 0.5rem 0.65rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
+    .mobile-toggle:hover {
+      background-color: var(--bg-code);
+      border-color: var(--accent-primary);
+    }
+
+    .hamburger-icon {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 18px;
+      height: 13px;
+    }
+
+    .hamburger-icon span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background-color: var(--text-main);
+      border-radius: 2px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .mobile-toggle.open .hamburger-icon span:nth-child(1) {
+      transform: translateY(5.5px) rotate(45deg);
+    }
+
+    .mobile-toggle.open .hamburger-icon span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .mobile-toggle.open .hamburger-icon span:nth-child(3) {
+      transform: translateY(-5.5px) rotate(-45deg);
+    }
+
+    .mobile-drawer {
+      display: none;
+      position: fixed;
+      top: 3.6rem;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(11, 15, 25, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 99;
+      padding: 1.5rem;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .mobile-drawer.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .mobile-github-btn {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Scrollbar styling */
+    pre::-webkit-scrollbar, .mobile-drawer::-webkit-scrollbar, .sidebar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    pre::-webkit-scrollbar-track, .mobile-drawer::-webkit-scrollbar-track, .sidebar::-webkit-scrollbar-track {
+      background: var(--bg-card);
+    }
+    pre::-webkit-scrollbar-thumb, .mobile-drawer::-webkit-scrollbar-thumb, .sidebar::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+
+    /* Responsive Breakpoints */
     @media (max-width: 850px) {
+      .navbar {
+        padding: 0.75rem 1.25rem;
+      }
+      .nav-links, .navbar .btn-github {
+        display: none;
+      }
+      .mobile-toggle {
+        display: flex;
+      }
+      .mobile-drawer {
+        display: block;
+      }
       .container {
         grid-template-columns: 1fr;
+        padding: 1.25rem 1rem;
+        gap: 2rem;
       }
       .sidebar {
         display: none;
       }
+      .hero {
+        padding: 2rem 1rem;
+        margin-bottom: 2rem;
+      }
       .hero-title {
-        font-size: 2rem;
+        font-size: 2.1rem;
+      }
+      .hero-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+      }
+      .hero-cta {
+        margin-bottom: 1.5rem;
+      }
+      .install-bar {
+        max-width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+        gap: 0.5rem;
+      }
+      .install-bar span {
+        word-break: break-all;
+      }
+      section {
+        margin-bottom: 2.5rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+      }
+      h3 {
+        font-size: 1.05rem;
+      }
+      pre {
+        font-size: 0.825rem;
+        padding: 0.75rem;
+      }
+      .code-header {
+        padding: 0.4rem 0.75rem;
+      }
+      .vault-banner {
+        padding: 1.15rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 0.6rem 1rem;
+      }
+      .brand {
+        font-size: 1.1rem;
+      }
+      .container {
+        padding: 1rem 0.75rem;
+      }
+      .hero {
+        padding: 1.5rem 0.75rem;
+        border-radius: 12px;
+      }
+      .hero-title {
+        font-size: 1.65rem;
+      }
+      .hero-badge {
+        font-size: 0.75rem;
+      }
+      .install-bar {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.7rem;
+      }
+      pre {
+        font-size: 0.8rem;
       }
     }
   </style>
@@ -398,7 +567,51 @@
       <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       GitHub
     </a>
+    <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation menu">
+      <span class="hamburger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
   </nav>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <input type="text" id="cmdSearchMobile" class="search-box" placeholder="Search commands...">
+
+    <div class="menu-group">
+      <div class="menu-title">Getting Started</div>
+      <ul class="menu-items">
+        <li><a href="#quickstart">Quickstart</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </div>
+
+    <div class="menu-group">
+      <div class="menu-title">Commands</div>
+      <ul class="menu-items">
+        <li><a href="#auth">manup login</a></li>
+        <li><a href="#whoami">manup whoami</a></li>
+        <li><a href="#init">manup init</a></li>
+        <li><a href="#secrets">manup secrets</a></li>
+        <li><a href="#export">manup secrets export</a></li>
+        <li><a href="#run">manup run</a></li>
+      </ul>
+    </div>
+
+    <div class="menu-group">
+      <div class="menu-title">Ecosystem</div>
+      <ul class="menu-items">
+        <li><a href="#vault-server">ManUp Server</a></li>
+      </ul>
+    </div>
+
+    <a href="https://github.com/Amanbig/manup-cli" target="_blank" class="btn-github mobile-github-btn">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </div>
 
   <div class="container">
     <!-- Sidebar Navigation -->
@@ -616,10 +829,10 @@ manup run -- npm run dev</code></pre>
   <script>
     // Command search filter logic
     const searchInput = document.getElementById('cmdSearch');
+    const searchInputMobile = document.getElementById('cmdSearchMobile');
     const sections = document.querySelectorAll('section');
 
-    searchInput.addEventListener('input', (e) => {
-      const term = e.target.value.toLowerCase().trim();
+    function filterSections(term) {
       sections.forEach(sec => {
         const text = sec.textContent.toLowerCase();
         if (text.includes(term)) {
@@ -628,7 +841,42 @@ manup run -- npm run dev</code></pre>
           sec.style.display = 'none';
         }
       });
-    });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        if (searchInputMobile) searchInputMobile.value = e.target.value;
+        filterSections(term);
+      });
+    }
+
+    if (searchInputMobile) {
+      searchInputMobile.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        if (searchInput) searchInput.value = e.target.value;
+        filterSections(term);
+      });
+    }
+
+    // Mobile Drawer Toggle
+    const mobileToggle = document.getElementById('mobileToggle');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+
+    if (mobileToggle && mobileDrawer) {
+      mobileToggle.addEventListener('click', () => {
+        const isOpen = mobileToggle.classList.toggle('open');
+        mobileDrawer.classList.toggle('active', isOpen);
+      });
+
+      // Close drawer when clicking any link inside
+      mobileDrawer.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileToggle.classList.remove('open');
+          mobileDrawer.classList.remove('active');
+        });
+      });
+    }
   </script>
 </body>
 </html>
