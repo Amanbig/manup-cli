@@ -54,6 +54,20 @@ export const whoamiCommand = new Command('whoami')
         ],
       ];
 
+      if (user.apiKeyScope) {
+        rows.push([
+          'API Key Scope',
+          user.apiKeyScope === 'read-only' ? 'read-only' : 'full (read/write)',
+        ]);
+      }
+
+      if (authTypeLabel.includes('API Key')) {
+        const projScope = user.apiKeyProjectId
+          ? `${user.apiKeyProjectName || 'Project'} (${user.apiKeyProjectId})`
+          : 'All Projects (Organization-wide)';
+        rows.push(['API Key Project Scope', projScope]);
+      }
+
       if (localCfg) {
         rows.push([
           'Linked Project',

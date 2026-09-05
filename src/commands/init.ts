@@ -6,7 +6,39 @@ import { logger, createSpinner } from '../utils/logger.js';
 
 export const initCommand = new Command('init')
   .description('Link current workspace directory to a ManUp project and environment')
-  .action(async () => {
+  .option('-p, --project <project>', 'Project name or ID to link')
+  .option('-e, --env <environment>', 'Environment name or ID to link')
+  .action(async (options) => {
+    // Non-interactive linking if flags are passed
+    if (options.project || options.env) {
+      const spinner = createSpinner('Resolving project and environment...');
+      spinner.start();
+      try {
+        const client = new ManUpClient();
+        const { project, environment } = await client.resolveEnvironment(
+          options.env,
+          options.project,
+        );
+        spinner.stop();
+
+        const filePath = setLocalConfig({
+          projectId: project.id,
+          projectName: project.name,
+          environmentId: environment.id,
+          environmentName: environment.name,
+        });
+
+        logger.success(
+          `Successfully linked directory to project "${project.name}" [${environment.name}]!\nSaved configuration to ${filePath}`,
+        );
+        return;
+      } catch (err: any) {
+        spinner.fail('Link failed');
+        logger.error(err.response?.data?.detail || err.message);
+        process.exit(1);
+      }
+    }
+
     p.intro('🔗 ManUp Link Project');
 
     const spinner = createSpinner('Fetching projects...');

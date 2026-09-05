@@ -9,6 +9,10 @@ export interface User {
   type?: string;
   organizationId: string;
   organizationName?: string;
+  apiKeyId?: string | null;
+  apiKeyScope?: 'full' | 'read-only' | null;
+  apiKeyProjectId?: string | null;
+  apiKeyProjectName?: string | null;
 }
 
 export interface Project {
@@ -44,6 +48,10 @@ export interface ApiKeyItem {
   name: string;
   apiKey?: string;
   scope: 'full' | 'read-only';
+  projectId?: string | null;
+  projectName?: string | null;
+  rateLimit?: number;
+  requestCount?: number;
   createdAt?: string;
   expiresAt?: string | null;
   lastUsedAt?: string | null;
@@ -148,8 +156,16 @@ export class ManUpClient {
     name: string,
     scope: 'full' | 'read-only' = 'full',
     expiresAt?: string,
+    projectId?: string | null,
+    expiresInDays?: number,
   ): Promise<ApiKeyItem> {
-    const res = await this.axiosInstance.post('/users/api-keys', { name, scope, expiresAt });
+    const res = await this.axiosInstance.post('/users/api-keys', {
+      name,
+      scope,
+      expiresAt,
+      projectId,
+      expiresInDays,
+    });
     return res.data;
   }
 
@@ -219,5 +235,157 @@ export class ManUpClient {
 
   public async deleteSecret(secretId: string): Promise<void> {
     await this.axiosInstance.delete(`/secrets/${secretId}`);
+  }
+
+  // --- Resolution and Query Helpers ---
+
+  public async querySecrets(params: {
+    env: string;
+    project?: string;
+    format?: 'json' | 'dotenv' | 'kv';
+  }): Promise<{ data: any; headers: any }> {
+    const queryParams: Record<string, string> = { env: params.env };
+    if (params.project) {
+      queryParams.project = params.project;
+    }
+    if (params.format) {
+      queryParams.format = params.format;
+    }
+    const res = await this.axiosInstance.get('/secrets', {
+      params: queryParams,
+      transformResponse: params.format === 'dotenv' ? [(data) => data] : undefined,
+    });
+    return { data: res.data, headers: res.headers };
+  }
+
+  public async resolveProject(projectQuery?: string): Promise<Project> {
+    const localCfg = getLocalConfig();
+    const query = (projectQuery || localCfg?.projectId || localCfg?.projectName)?.trim();
+
+    const projects = await this.listProjects();
+    if (projects.length === 0) {
+      throw new Error('No projects found in organization.');
+    }
+
+    if (query) {
+      const match = projects.find(
+        (p) => p.id === query || p.name.toLowerCase() === query.toLowerCase(),
+      );
+      if (match) return match;
+      throw new Error(
+        `Project '${query}' not found. Available projects: ${projects.map((p) => p.name).join(', ')}`,
+      );
+    }
+
+    if (projects.length === 1) {
+      return projects[0];
+    }
+
+    throw new Error(
+      `Multiple projects found (${projects.map((p) => p.name).join(', ')}). Please specify --project <name_or_id>.`,
+    );
+  }
+
+  public async resolveEnvironment(
+    envQuery?: string,
+    projectQuery?: string,
+  ): Promise<{ project: Project; environment: Environment }> {
+    const localCfg = getLocalConfig();
+    const project = await this.resolveProject(projectQuery);
+    const environments = await this.listEnvironments(project.id);
+
+    if (environments.length === 0) {
+      throw new Error(`Project '${project.name}' has no configured environments.`);
+    }
+
+    const query = (envQuery || localCfg?.environmentId || localCfg?.environmentName)?.trim();
+
+    if (!query) {
+      if (environments.length === 1) {
+        return { project, environment: environments[0] };
+      }
+      throw new Error(
+        `Environment is required. Pass --env <name_or_id>. Available: ${environments.map((e) => e.name).join(', ')}`,
+      );
+    }
+
+    const cleanQuery = query.toLowerCase();
+
+    // 1. Direct ID match
+    let match = environments.find((e) => e.id === query);
+
+    // 2. Exact name match (case-insensitive)
+    if (!match) {
+      match = environments.find((e) => e.name.toLowerCase() === cleanQuery);
+    }
+
+    // 3. Common abbreviations (prod -> production, dev -> development, stage -> staging)
+    if (!match) {
+      match = environments.find((e) => {
+        const n = e.name.toLowerCase();
+        if (cleanQuery === 'prod' && (n === 'production' || n.startsWith('prod'))) return true;
+        if (cleanQuery === 'dev' && (n === 'development' || n.startsWith('dev'))) return true;
+        if (cleanQuery === 'stage' && (n === 'staging' || n.startsWith('stag'))) return true;
+        return false;
+      });
+    }
+
+    if (match) {
+      return { project, environment: match };
+    }
+
+    throw new Error(
+      `Environment '${query}' not found in project '${project.name}'. Available: ${environments.map((e) => e.name).join(', ')}`,
+    );
+  }
+
+  public async fetchSecrets(options: { env?: string; project?: string }): Promise<{
+    secrets: Secret[];
+    environment: { id: string; name: string };
+    project: { id: string; name: string };
+  }> {
+    const localCfg = getLocalConfig();
+    const envQuery = options.env || localCfg?.environmentId || localCfg?.environmentName;
+    const projectQuery = options.project || localCfg?.projectId || localCfg?.projectName;
+
+    if (envQuery) {
+      try {
+        const { data, headers } = await this.querySecrets({
+          env: envQuery,
+          project: projectQuery,
+          format: 'json',
+        });
+
+        if (Array.isArray(data)) {
+          const envId = headers?.['x-environment-id'] || localCfg?.environmentId || '';
+          const envName =
+            headers?.['x-environment-name'] ||
+            options.env ||
+            localCfg?.environmentName ||
+            'Environment';
+          const projId = headers?.['x-project-id'] || localCfg?.projectId || '';
+          const projName =
+            headers?.['x-project-name'] || options.project || localCfg?.projectName || 'Project';
+
+          return {
+            secrets: data,
+            environment: { id: envId, name: envName },
+            project: { id: projId, name: projName },
+          };
+        }
+      } catch (err: any) {
+        if (err.response?.status !== 404 && err.response?.status !== 400) {
+          throw err;
+        }
+      }
+    }
+
+    const { project, environment } = await this.resolveEnvironment(options.env, options.project);
+    const secrets = await this.getSecrets(environment.id);
+    return {
+      secrets,
+      environment: { id: environment.id, name: environment.name },
+      project: { id: project.id, name: project.name },
+    };
   }
 }
