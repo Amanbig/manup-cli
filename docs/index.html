@@ -594,6 +594,7 @@
         <li><a href="#auth">manup login</a></li>
         <li><a href="#whoami">manup whoami</a></li>
         <li><a href="#init">manup init</a></li>
+        <li><a href="#keys">manup keys</a></li>
         <li><a href="#secrets">manup secrets</a></li>
         <li><a href="#export">manup secrets export</a></li>
         <li><a href="#run">manup run</a></li>
@@ -632,6 +633,7 @@
           <li><a href="#auth">manup login</a></li>
           <li><a href="#whoami">manup whoami</a></li>
           <li><a href="#init">manup init</a></li>
+          <li><a href="#keys">manup keys</a></li>
           <li><a href="#secrets">manup secrets</a></li>
           <li><a href="#export">manup secrets export</a></li>
           <li><a href="#run">manup run</a></li>
@@ -651,7 +653,7 @@
       
       <!-- Hero Header -->
       <header class="hero">
-        <span class="hero-badge">v0.2.0 • Open Source</span>
+        <span class="hero-badge">v0.3.0 • Open Source</span>
         <h1 class="hero-title">ManUp CLI</h1>
         <p class="hero-subtitle">
           Manage, synchronize, and inject environment secrets seamlessly across your projects and automation pipelines.
@@ -731,7 +733,7 @@ manup login --server http://localhost:7780 --api-key mp_your_api_key</code></pre
       <!-- Status Section -->
       <section id="whoami">
         <h2>👤 Status Check (<code>manup whoami</code>)</h2>
-        <p>Displays active server URL, logged-in user email, organization ID, and linked directory details.</p>
+        <p>Displays active server URL, logged-in user email, organization ID, API key scope, project isolation status, and linked directory details.</p>
         <div class="code-block">
           <div class="code-header">terminal</div>
           <pre><code>manup whoami</code></pre>
@@ -744,56 +746,90 @@ manup login --server http://localhost:7780 --api-key mp_your_api_key</code></pre
         <p>Links your current directory to a specific project and environment in your ManUp vault by creating a local <code>.manup.json</code> file.</p>
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code>manup init</code></pre>
+          <pre><code><span class="cmd-comment"># Interactive wizard</span>
+manup init
+
+<span class="cmd-comment"># Non-interactive scriptable linking by name</span>
+manup init -p backend -e dev</code></pre>
+        </div>
+      </section>
+
+      <!-- API Keys Section -->
+      <section id="keys">
+        <h2>🔑 API Key Management (<code>manup keys</code>)</h2>
+        <p>Provision, inspect, and revoke API keys with support for project scoping and role-based access.</p>
+
+        <div class="code-block">
+          <div class="code-header">terminal</div>
+          <pre><code><span class="cmd-comment"># List all active API keys</span>
+manup keys
+
+<span class="cmd-comment"># Create an organization-wide key (read/write)</span>
+manup keys create ci-runner
+
+<span class="cmd-comment"># Create a project-scoped read-only key with 90-day expiration</span>
+manup keys create prod-worker --scope read-only --project backend --days 90
+
+<span class="cmd-comment"># Revoke an API key</span>
+manup keys delete &lt;keyId&gt;</code></pre>
         </div>
       </section>
 
       <!-- Secrets Management Section -->
       <section id="secrets">
         <h2>🔐 Secret Operations (<code>manup secrets</code>)</h2>
-        <p>Full CRUD operations for managing decrypted environment variables in your vault.</p>
+        <p>Full CRUD operations for managing decrypted environment variables in your vault. Supports environment and project targeting by name (e.g. <code>dev</code>, <code>prod</code>), common abbreviations, or ID.</p>
 
         <h3>List Secrets</h3>
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code><span class="cmd-comment"># List masked secrets</span>
+          <pre><code><span class="cmd-comment"># List masked secrets for linked environment</span>
 manup secrets
 
-<span class="cmd-comment"># Reveal plain secret values</span>
-manup secrets ls --reveal</code></pre>
+<span class="cmd-comment"># Reveal plain values</span>
+manup secrets ls --reveal
+
+<span class="cmd-comment"># Target environment and project by name</span>
+manup secrets ls -e dev
+manup secrets ls -p backend -e prod</code></pre>
         </div>
 
         <h3>Set Secret</h3>
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code>manup secrets set DATABASE_URL postgres://user:pass@localhost:5432/db</code></pre>
+          <pre><code><span class="cmd-comment"># Argument pair or KEY=VALUE syntax</span>
+manup secrets set DATABASE_URL postgres://user:pass@localhost:5432/db -e dev
+manup secrets set PORT=3000 -e prod -p backend</code></pre>
         </div>
 
         <h3>Get Secret</h3>
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code>manup secrets get DATABASE_URL</code></pre>
+          <pre><code>manup secrets get DATABASE_URL -e prod</code></pre>
         </div>
 
         <h3>Delete Secret</h3>
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code>manup secrets delete DATABASE_URL</code></pre>
+          <pre><code>manup secrets delete OLD_TOKEN -e dev</code></pre>
         </div>
       </section>
 
       <!-- Export Section -->
       <section id="export">
         <h2>📄 Exporting Secrets</h2>
-        <p>Export environment variables to <code>.env</code> files or standard export scripts.</p>
+        <p>Export environment variables to <code>.env</code> files, standard shell export scripts, or JSON maps.</p>
 
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code><span class="cmd-comment"># Write secrets to .env file</span>
-manup secrets export --out .env
+          <pre><code><span class="cmd-comment"># Write secrets to .env file by environment name</span>
+manup secrets export -e prod --out .env
+
+<span class="cmd-comment"># Output shell export format</span>
+manup secrets export -e dev --format export
 
 <span class="cmd-comment"># Output JSON format</span>
-manup secrets export --format json</code></pre>
+manup secrets export -e staging --format json</code></pre>
         </div>
       </section>
 
@@ -804,11 +840,16 @@ manup secrets export --format json</code></pre>
 
         <div class="code-block">
           <div class="code-header">terminal</div>
-          <pre><code><span class="cmd-comment"># Inject secrets into Node.js application</span>
+          <pre><code><span class="cmd-comment"># Inject secrets into Node.js application (linked environment)</span>
 manup run -- node server.js
 
 <span class="cmd-comment"># Inject secrets into npm dev server</span>
-manup run -- npm run dev</code></pre>
+manup run -- npm run dev
+
+<span class="cmd-comment"># Switch environment on the fly by name</span>
+manup run -e dev -- npm start
+manup run -e prod -- npm test
+manup run -p backend -e staging -- npm run build</code></pre>
         </div>
       </section>
 
