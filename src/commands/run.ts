@@ -1,40 +1,35 @@
 import { Command } from 'commander';
 import { execa } from 'execa';
 import { ManUpClient, type Secret } from '../api/client.js';
-import { getLocalConfig } from '../config/store.js';
 import { logger, createSpinner } from '../utils/logger.js';
 
 export const runCommand = new Command('run')
   .description('Run a command with secrets injected into process environment')
-  .option('-e, --env <environmentId>', 'Environment ID (defaults to linked environment)')
+  .option(
+    '-e, --env <environment>',
+    'Environment name (e.g. dev, prod), abbreviation, or ID (defaults to linked environment)',
+  )
+  .option('-p, --project <project>', 'Project name or ID (defaults to linked project)')
   .allowUnknownOption(true)
   .argument('<command...>', 'Command and arguments to execute')
   .action(async (commandArgs: string[], options) => {
-    const localCfg = getLocalConfig();
-    const envId = options.env || localCfg?.environmentId;
-
-    if (!envId) {
-      logger.error(
-        'Environment ID is required. Pass --env <envId> or run `manup init` to link a workspace.',
-      );
-      process.exit(1);
-    }
-
     const spinner = createSpinner('Fetching vault secrets...');
     spinner.start();
 
-    let secretMap: Record<string, string> = {};
+    const secretMap: Record<string, string> = {};
 
     try {
       const client = new ManUpClient();
-      const secrets = await client.getSecrets(envId);
+      const res = await client.fetchSecrets({ env: options.env, project: options.project });
       spinner.stop();
 
-      secrets.forEach((s: Secret) => {
+      res.secrets.forEach((s: Secret) => {
         secretMap[s.key] = s.value;
       });
 
-      logger.info(`Injected ${secrets.length} secrets into environment.`);
+      logger.info(
+        `Injected ${res.secrets.length} secrets from ${res.project.name} [${res.environment.name}] into environment.`,
+      );
     } catch (err: any) {
       spinner.fail('Failed to fetch secrets from vault');
       logger.error(err.response?.data?.detail || err.message);

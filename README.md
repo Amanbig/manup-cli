@@ -75,23 +75,34 @@ Link your local project directory to a specific project and environment in ManUp
 
 ```bash
 cd /path/to/my-project
+
+# Interactive wizard:
 manup init
+
+# Or scriptable non-interactive linking by project & environment name:
+manup init -p my-project -e dev
 ```
 
-This interactively prompts you to select a project and environment, creating a local `.manup.json` configuration file in your directory.
+This creates a local `.manup.json` configuration file in your directory that automatically scopes subsequent CLI commands.
 
 ---
 
 ## 🔐 Managing Secrets
 
+All secret commands support environment and project resolution by name (e.g. `dev`, `prod`, `staging`), common abbreviations (`dev`, `prod`, `stage`), or ID:
+
 ### List Secrets
 
 ```bash
-# List masked secrets
+# List secrets for linked environment (masked values)
 manup secrets
 
-# Reveal plain values
+# Reveal plaintext values
 manup secrets ls --reveal
+
+# Specify environment and project by name
+manup secrets ls -e dev
+manup secrets ls -p backend-api -e prod
 
 # Output JSON
 manup secrets --json
@@ -101,58 +112,74 @@ manup secrets --json
 
 ```bash
 manup secrets get DATABASE_URL
+manup secrets get DATABASE_URL -e prod
 ```
 
 ### Create or Update a Secret
 
 ```bash
 # Using argument pair
-manup secrets set API_TOKEN super_secret_val
+manup secrets set API_TOKEN super_secret_val -e dev
 
 # Using KEY=VALUE syntax
-manup secrets set API_TOKEN=super_secret_val
+manup secrets set API_TOKEN=super_secret_val -e prod -p backend-api
 ```
 
 ### Delete a Secret
 
 ```bash
-manup secrets delete API_TOKEN
+manup secrets delete API_TOKEN -e dev
 ```
 
 ### Export Secrets
 
 ```bash
 # Export to .env file
-manup secrets export --out .env
+manup secrets export -e prod --out .env
 
 # Export as shell export commands
-manup secrets export --format export
+manup secrets export -e dev --format export
 
-# Output JSON map
-manup secrets export --format json
+# Output JSON key-value map
+manup secrets export -e staging --format json
 ```
 
 ---
 
 ## 🚀 Running Commands with Vault Secrets (`manup run`)
 
-Inject all environment secrets from your linked ManUp vault into any command without writing them to disk:
+Inject all environment secrets from your ManUp vault directly into any process environment without writing secrets to disk:
 
 ```bash
-# Node.js app
-manup run -- node index.js
-
-# NPM script
+# Runs with linked environment secrets
 manup run -- npm start
-
-# Python / Docker / Custom scripts
+manup run -- node index.js
 manup run -- python app.py
+
+# Switch environment or project on the fly by name:
+manup run -e dev -- npm start
+manup run -e prod -- npm test
+manup run -p backend -e staging -- npm run build
 ```
 
-Override environment on the fly:
+---
+
+## 🔑 Managing API Keys (`manup keys`)
+
+Provision and manage access tokens (including project-scoped API keys) directly from the CLI:
 
 ```bash
-manup run --env <environmentId> -- npm test
+# List all API keys
+manup keys
+
+# Create an organization-wide key (read/write)
+manup keys create ci-runner
+
+# Create a read-only key scoped to a specific project with 90-day expiration
+manup keys create prod-deployer --scope read-only --project backend --days 90
+
+# Revoke an API key
+manup keys delete <keyId>
 ```
 
 ---
